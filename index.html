@@ -182,7 +182,7 @@ select,input[type=text]{font-family:inherit}
   <button class="tab" data-view="mock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6"/></svg>Mock</button>
 </nav>
 
-<div id="buildTag">Call to the Bar · build 2026-10-19d</div>
+<div id="buildTag">Call to the Bar · build 2026-10-20a</div>
 <div id="toast" role="status"></div>
 
 <script>
@@ -211,7 +211,7 @@ const VIEWS=['home','subjects','drills','chapters','missbank','essays','mock'];
 function showView(n){
   VIEWS.forEach(v=>$('view-'+v).classList.toggle('active',v===n));
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.view===n));
-  window.scrollTo(0,0);
+  window.scrollTo(0,0);stopSpeak();
   if(n==='home')renderHome(); if(n==='subjects')renderSubjects(); if(n==='chapters')renderChapters(); if(n==='missbank')renderMiss(); if(n==='essays')renderEssayList();
 }
 document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>showView(t.dataset.view)));
@@ -310,8 +310,8 @@ function renderSubjects(){
         if(c.status==='taught'){
           return '<div class="card chcard" style="margin:8px 0;cursor:pointer">'+
             '<div class="sub" style="margin:0 0 4px">'+esc(c.session||'')+'</div>'+
-            '<b>'+esc(c.title)+'</b>'+
-            '<div class="cdetail" style="display:none"><ul style="margin:10px 0 0;padding-left:18px;line-height:1.65">'+
+            '<b>'+esc(c.title)+'</b>'+audioBlock(c.id)+
+            '<div class="cdetail" style="display:none">'+audioBlock(c.id)+'<ul style="margin:10px 0 0;padding-left:18px;line-height:1.65">'+
             (c.key_rules||[]).map(r=>'<li style="margin-bottom:8px">'+esc(r)+'</li>').join('')+
             '</ul></div></div>';
         }
@@ -321,6 +321,7 @@ function renderSubjects(){
       }).join('')+'</div></div>';
   });
   el.innerHTML=html||'<div class="empty">No subjects loaded yet.</div>';
+  wireListen(el);
   el.querySelectorAll('.subj').forEach(d=>d.addEventListener('click',e=>{
     if(e.target.closest('.chcard'))return;
     const s=d.querySelector('.sdetail');s.style.display=s.style.display==='none'?'':'none';
@@ -329,6 +330,49 @@ function renderSubjects(){
     e.stopPropagation();
     const s=d.querySelector('.cdetail');s.style.display=s.style.display==='none'?'':'none';
   }));
+}
+
+
+/* ================= VOICE LECTURES ================= */
+const LECTURES={
+ 'ch-k-formation':{f:'lecture-s8.mp3',label:'Bonus voice lecture · Session 8 — UCC vs Common Law'},
+ 'ch-k-enforce':{f:'lecture-s9.mp3',label:'Voice lecture · Session 9'},
+ 'ch-k-perform':{f:'lecture-s10.mp3',label:'Voice lecture · Session 10'},
+ 'ch-cr-ar':{f:'lecture-s11.mp3',label:'Voice lecture · Session 11'},
+ 'ch-cr-homicide':{f:'lecture-s12.mp3',label:'Voice lecture · Session 12'},
+ 'ch-cr-inchoate':{f:'lecture-s13.mp3',label:'Voice lecture · Session 13'},
+ 'ch-cr-defenses':{f:'lecture-s14.mp3',label:'Voice lecture · Session 14'},
+ 'ch15':{f:'lecture-s15.mp3',label:'Voice lecture · Session 15'}
+};
+let speakOn=false;
+function stopSpeak(){speakOn=false;try{speechSynthesis.cancel()}catch(e){}}
+function speakText(text,btn){
+  if(speakOn){stopSpeak();if(btn)btn.textContent='🔊 Listen to this chapter';return}
+  const clean=String(text||'').replace(/\s+/g,' ').trim();
+  if(!clean)return;
+  const chunks=clean.match(/.{1,180}(\s|$)/g)||[clean];
+  speakOn=true;if(btn)btn.textContent='⏹ Stop listening';
+  let i=0;
+  const next=()=>{if(!speakOn||i>=chunks.length){speakOn=false;if(btn)btn.textContent='🔊 Listen to this chapter';return}
+    const u=new SpeechSynthesisUtterance(chunks[i++]);u.onend=next;u.onerror=next;try{speechSynthesis.speak(u)}catch(e){next()}};
+  try{speechSynthesis.cancel()}catch(e){}
+  next();
+}
+function chapterTextById(id){
+  for(const s of SUBJECTS){for(const c of (s.chapters||[])){if(c.id===id)return c.title+'. '+(c.key_rules||[]).join(' ')}}
+  const ch=CHAPTERS.find(x=>x.id===id);if(ch)return ch.title+'. '+(ch.key_rules||[]).join(' ');
+  return '';
+}
+function audioBlock(id){
+  const L=LECTURES[id];let out='';
+  if(L)out+='<div style="margin:10px 0"><div class="sub" style="margin:0 0 6px">🎙️ '+esc(L.label)+'</div><audio controls preload="none" src="'+L.f+'" style="width:100%"></audio></div>';
+  out+='<button class="btn btn-sm listenBtn" data-lid="'+esc(id)+'" style="margin:2px 0 8px">🔊 Listen to this chapter</button>';
+  return out;
+}
+function wireListen(scope){
+  if(!scope)return;
+  scope.querySelectorAll('.listenBtn').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();speakText(chapterTextById(b.dataset.lid),b)}));
+  scope.querySelectorAll('audio').forEach(a=>a.addEventListener('click',e=>e.stopPropagation()));
 }
 
 /* ================= MISS BANK ================= */
@@ -344,6 +388,7 @@ function renderChapters(){
     html2='<div class="empty">No chapters yet.</div>';
   }
   $('chapterList').innerHTML=html2;
+  wireListen($('chapterList'));
 }
 function renderMiss(){
   const mastered=store('missMastered',[]);
