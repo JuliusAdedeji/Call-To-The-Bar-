@@ -220,7 +220,7 @@ select,input[type=text]{font-family:inherit}
   <button class="tab" data-view="mock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6"/></svg>Mock</button>
 </nav>
 
-<div id="buildTag">Call to the Bar · build 2026-10-20f</div>
+<div id="buildTag">Call to the Bar · build 2026-10-20g</div>
 <div id="toast" role="status"></div>
 
 <script>
@@ -421,8 +421,11 @@ function chapterTextById(id){
 }
 function audioBlock(id){
   const L=LECTURES[id];let out='';
-  if(L)out+='<div style="margin:10px 0"><div class="sub" style="margin:0 0 6px">🎙️ '+esc(L.label)+'</div><audio controls preload="none" src="'+L.f+'" style="width:100%"></audio></div>';
-  out+='<button class="btn btn-sm listenBtn" data-lid="'+esc(id)+'" style="margin:2px 0 8px">🔊 Listen to this chapter</button>';
+  if(L){
+    out+='<div style="margin:10px 0;padding:10px;border:1px solid rgba(212,169,78,.55);border-radius:12px;background:rgba(212,169,78,.08)"><div class="sub" style="margin:0 0 6px;color:var(--gold2)">🎙️ '+esc(L.label)+' — recorded lecture, tap ▶</div><audio controls preload="metadata" src="'+L.f+'" style="width:100%"></audio></div>';
+    return out;
+  }
+  out+='<button class="btn btn-sm listenBtn" data-lid="'+esc(id)+'" style="margin:2px 0 8px">🔊 Listen to this chapter (phone voice — recording coming)</button>';
   return out;
 }
 function wireListen(scope){
