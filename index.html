@@ -182,7 +182,7 @@ select,input[type=text]{font-family:inherit}
   <button class="tab" data-view="mock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6"/></svg>Mock</button>
 </nav>
 
-<div id="buildTag">Call to the Bar · build 2026-10-20a</div>
+<div id="buildTag">Call to the Bar · build 2026-10-20b</div>
 <div id="toast" role="status"></div>
 
 <script>
@@ -344,6 +344,18 @@ const LECTURES={
  'ch-cr-defenses':{f:'lecture-s14.mp3',label:'Voice lecture · Session 14'},
  'ch15':{f:'lecture-s15.mp3',label:'Voice lecture · Session 15'}
 };
+function pickVoice(){
+  try{
+    const vs=speechSynthesis.getVoices().filter(v=>/^en[-_]US/i.test(v.lang));
+    if(!vs.length)return null;
+    const score=v=>{const n=(v.name||'').toLowerCase();let s=0;
+      if(n.includes('premium'))s+=50; if(n.includes('enhanced'))s+=40;
+      if(n.includes('ava'))s+=30; if(n.includes('zoe'))s+=28; if(n.includes('samantha'))s+=25;
+      if(n.includes('joanna'))s+=22; if(n.includes('allison'))s+=20; if(n.includes('nicky'))s+=15;
+      if(v.localService)s+=2; return s};
+    return vs.sort((a,b)=>score(b)-score(a))[0];
+  }catch(e){return null}
+}
 let speakOn=false;
 function stopSpeak(){speakOn=false;try{speechSynthesis.cancel()}catch(e){}}
 function speakText(text,btn){
@@ -354,7 +366,7 @@ function speakText(text,btn){
   speakOn=true;if(btn)btn.textContent='⏹ Stop listening';
   let i=0;
   const next=()=>{if(!speakOn||i>=chunks.length){speakOn=false;if(btn)btn.textContent='🔊 Listen to this chapter';return}
-    const u=new SpeechSynthesisUtterance(chunks[i++]);u.onend=next;u.onerror=next;try{speechSynthesis.speak(u)}catch(e){next()}};
+    const u=new SpeechSynthesisUtterance(chunks[i++]);const v=pickVoice();if(v)u.voice=v;u.rate=0.95;u.pitch=0.95;u.onend=next;u.onerror=next;try{speechSynthesis.speak(u)}catch(e){next()}};
   try{speechSynthesis.cancel()}catch(e){}
   next();
 }
