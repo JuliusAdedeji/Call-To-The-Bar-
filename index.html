@@ -220,7 +220,7 @@ select,input[type=text]{font-family:inherit}
   <button class="tab" data-view="mock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6"/></svg>Mock</button>
 </nav>
 
-<div id="buildTag">Call to the Bar · build 2026-10-20g</div>
+<div id="buildTag">Call to the Bar · build 2026-10-21a</div>
 <div id="toast" role="status"></div>
 
 <script>
@@ -349,7 +349,7 @@ function renderSubjects(){
           return '<div class="card chcard" style="margin:8px 0;cursor:pointer">'+
             '<div class="sub" style="margin:0 0 4px">'+esc(c.session||'')+'</div>'+
             '<b>'+esc(c.title)+'</b>'+audioBlock(c.id)+
-            '<div class="cdetail" style="display:none">'+audioBlock(c.id)+'<ul style="margin:10px 0 0;padding-left:18px;line-height:1.65">'+
+            '<div class="cdetail" style="display:none">'+'<ul style="margin:10px 0 0;padding-left:18px;line-height:1.65">'+
             (c.key_rules||[]).map(r=>'<li style="margin-bottom:8px">'+esc(r)+'</li>').join('')+
             '</ul></div></div>';
         }
